@@ -11,15 +11,16 @@ import org.springframework.stereotype.Component;
 
 import java.util.Properties;
 
+/**
+ * @author Ronald
+ */
 @Slf4j
-@Component
 public class SftpConnectFactory extends BasePooledObjectFactory<ChannelSftp>{
 
     public static final String USER_NAME = "xxx";
     public static final String PASSWORD = "xxx";
     public static final String HOST = "xx.xx.com";
     public static final int PORT = 22;
-
 
     @Override
     public ChannelSftp create() throws Exception {

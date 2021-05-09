@@ -2,23 +2,33 @@ package tech.shuyi.javacodechip.acp;
 
 import com.jcraft.jsch.ChannelSftp;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.pool2.impl.AbandonedConfig;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
 public class SftpConnectPool {
 
-    // 声明一个对象池
     private GenericObjectPool<ChannelSftp> sftpConnectPool;
 
-    // 初始化参数
-    public SftpConnectPool() {
-        GenericObjectPoolConfig conf = new GenericObjectPoolConfig();
-        conf.setMaxTotal(10);
-        conf.setMaxIdle(5);
-        sftpConnectPool = new GenericObjectPool<ChannelSftp>(new SftpConnectFactory(), conf);
+    public SftpConnectPool(SftpConnectFactory sftpConnectFactory) {
+        // 设置连接池配置
+        GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+        poolConfig.setEvictionPolicyClassName("tech.shuyi.javacodechip.acp.SftpEvictionPolicy");
+        poolConfig.setBlockWhenExhausted(true);
+        poolConfig.setJmxEnabled(false);
+        poolConfig.setMaxWaitMillis(1000 * 10);
+        poolConfig.setTimeBetweenEvictionRunsMillis(60 * 1000);
+        poolConfig.setMinEvictableIdleTimeMillis(20 * 1000);
+        poolConfig.setTestWhileIdle(true);
+        poolConfig.setTestOnReturn(true);
+        poolConfig.setTestOnBorrow(true);
+        poolConfig.setMaxTotal(3);
+        // 设置抛弃策略
+        AbandonedConfig abandonedConfig = new AbandonedConfig();
+        abandonedConfig.setRemoveAbandonedOnMaintenance(true);
+        abandonedConfig.setRemoveAbandonedOnBorrow(true);
+        this.sftpConnectPool = new GenericObjectPool<>(sftpConnectFactory, poolConfig, abandonedConfig);
     }
 
     public ChannelSftp borrowObject() {
